@@ -1,5 +1,4 @@
 #include <thread>
-#include <vector>
 #include <iostream> 
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
@@ -10,12 +9,15 @@ using namespace std;
 int main() {
   key_t key = ftok("shmfile", 65); 
 
-  int shmid = shmget(key,1024,0666|IPC_CREAT); 
+  int shmid = shmget(key, 1024, 0666);
 
-  vector<string> *sm = (vector<string>*) shmat(shmid, NULL, 0);
-  (*sm).push_back("TEST");
+  if(shmid > 0) {
+    int *sm = (int*) shmat(shmid, NULL, 0);
 
-  shmdt(sm); 
+    sm[0] = 45;
+
+    shmdt(sm);
+  }
 
   return 0;
 }
