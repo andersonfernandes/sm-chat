@@ -4,21 +4,21 @@
 #include <sys/shm.h> 
 #include <stdio.h> 
 
+#include "user.h"
+
 using namespace std; 
 
-#define CLIENTS_FILE "clients_file"
-
 int main() {
-	key_t clients_key = ftok(CLIENTS_FILE, 65);
+	key_t users_key = ftok(USERS_FILE, 65);
 
-	int clients_shmid = -1;
-	if ((clients_shmid = shmget(clients_key , 1024, 0666)) < 0) {
+	int users_shmid = -1;
+	if ((users_shmid = shmget(users_key , 1024, 0666)) < 0) {
 		perror("shmget"); 
 		exit(1);
 	}
 
-	int *clients = (int*) shmat(clients_shmid, NULL, 0);
+	int *users = (int*) shmat(users_shmid, NULL, 0);
 
-	shmdt(clients);
+	shmdt(users);
 	return 0;
 }

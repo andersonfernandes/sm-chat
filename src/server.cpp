@@ -4,9 +4,9 @@
 #include <sys/shm.h> 
 #include <stdio.h> 
 
-using namespace std; 
+#include "user.h"
 
-#define CLIENTS_FILE "clients_file"
+using namespace std; 
 
 void kill_server_listener() {
   string exit_server = "";
@@ -19,15 +19,15 @@ void kill_server_listener() {
 int main() {
   cout << "Starting Server" << endl;
 
-  key_t clients_key = ftok(CLIENTS_FILE, 65);
+  key_t users_key = ftok(USERS_FILE, 65);
 
-  int clients_shmid = shmget(clients_key, 1024, 0666|IPC_CREAT); 
-  int *clients = (int*) shmat(clients_shmid, NULL, 0);
+  int users_shmid = shmget(users_key, 1024, 0666|IPC_CREAT); 
+  int *users = (int*) shmat(users_shmid, NULL, 0);
 
   thread kill_server_listener_thread(kill_server_listener);
   kill_server_listener_thread.join();
 
-  shmdt(clients); 
-  shmctl(clients_shmid, IPC_RMID, NULL);
+  shmdt(users); 
+  shmctl(users_shmid, IPC_RMID, NULL);
   return 0;
 }
