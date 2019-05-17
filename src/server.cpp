@@ -29,6 +29,5 @@ int main() {
 
   shmdt(clients); 
   shmctl(clients_shmid, IPC_RMID, NULL);
-
   return 0;
 }

@@ -6,18 +6,19 @@
 
 using namespace std; 
 
+#define CLIENTS_FILE "clients_file"
+
 int main() {
-  key_t key = ftok("shmfile", 65); 
+	key_t clients_key = ftok(CLIENTS_FILE, 65);
 
-  int shmid = shmget(key, 1024, 0666);
+	int clients_shmid = -1;
+	if ((clients_shmid = shmget(clients_key , 1024, 0666)) < 0) {
+		perror("shmget"); 
+		exit(1);
+	}
 
-  if(shmid > 0) {
-    int *sm = (int*) shmat(shmid, NULL, 0);
+	int *clients = (int*) shmat(clients_shmid, NULL, 0);
 
-    sm[0] = 45;
-
-    shmdt(sm);
-  }
-
-  return 0;
+	shmdt(clients);
+	return 0;
 }
