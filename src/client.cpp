@@ -3,22 +3,31 @@
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
 #include <stdio.h> 
+#include <string.h>
 
 #include "user.h"
 
 using namespace std; 
 
-int main() {
-	key_t users_key = ftok(USERS_FILE, 65);
+int users_shmid = shmget(users_key, MAX_USERS * sizeof(user_t), 0666);
 
-	int users_shmid = -1;
-	if ((users_shmid = shmget(users_key , 1024, 0666)) < 0) {
-		perror("shmget"); 
+int main() {
+  if (users_shmid < 0) {
+    perror("shmget"); 
 		exit(1);
 	}
 
-	int *users = (int*) shmat(users_shmid, NULL, 0);
+  user_t *users = (user_t*) shmat(users_shmid, NULL, 0);
 
+  user_t *current_user = new user_t;
+
+  cout << "Username: ";
+  cin >> current_user->name;
+
+  memcpy(&users[0], current_user, sizeof(user_t));
+  
 	shmdt(users);
+
+  while(1) {}
 	return 0;
 }
