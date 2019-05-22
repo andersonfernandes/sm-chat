@@ -14,19 +14,28 @@ using namespace std;
 int users_shmid = shmget(users_key, MAX_USERS * sizeof(user_t), 0666);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666); 
 
+void init();
 void create_user();
 
 int main() {
-  srand(time(NULL));
-  if (users_shmid < 0) {
-    perror("shmget"); 
-    exit(1);
-  }
-
+  init();
   create_user();
 
   while(1) {}
   return 0;
+}
+
+void init() {
+  // Set rand seed
+  srand(time(NULL));
+
+  // Verify shared memory connection errors
+  if ((users_shmid < 0) || (users_count_shmid < 0)) {
+    perror("shmget"); 
+    cout << "Unable to connect with the server!" << endl;
+
+    exit(1);
+  }
 }
 
 void create_user() {

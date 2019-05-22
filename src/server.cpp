@@ -4,6 +4,7 @@
 #include <sys/shm.h> 
 #include <stdio.h> 
 #include <signal.h> 
+#include <ctime>
 
 #include "user.h"
 
@@ -15,18 +16,12 @@ int users_count_shmid = shmget(users_count_key, sizeof(int), 0666|IPC_CREAT);
 
 int old_count = 0;
 
+void init();
 void sigint_handler(int sig_num);
 void print_new_users();
 
 int main() {
-  cout << "Starting the server" << endl;
-
-  int *users_count = att_users_count(users_count_shmid);
-  *users_count = 0;
-  shmdt(users_count);
-
-  cout << "Use Ctrl-C to stop\n" << endl;
-  signal(SIGINT, sigint_handler); 
+  init();
 
   while (1) {
     print_new_users();
@@ -43,6 +38,19 @@ int main() {
   return 0;
 }
 
+void init() {
+  cout << "Starting the server" << endl;
+
+  // Initialize users count on shared memory
+  int *users_count = att_users_count(users_count_shmid);
+  *users_count = 0;
+  shmdt(users_count);
+
+  // override SIGINT handler
+  cout << "Use Ctrl-C to stop\n" << endl;
+  signal(SIGINT, sigint_handler); 
+}
+
 void sigint_handler(int sig_num) { 
   kill_server_flag = true;
 } 
@@ -54,7 +62,9 @@ void print_new_users() {
   if(old_count != *users_count) {
     old_count = (*users_count);
 
-    cout << users[(*users_count) - 1].name << " logged on the server" <<  endl;
+    time_t now = time(0);
+    cout << ctime(&now) << " > ";
+    cout << users[(*users_count) - 1].name << " logged on the server\n" <<  endl;
   }
 
   shmdt(users_count);
