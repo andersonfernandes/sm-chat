@@ -1,16 +1,23 @@
 #include <iostream> 
 #include <sys/ipc.h> 
+#include <sys/shm.h> 
 
 using namespace std;
 
-#define USERS_BASEKEY "users_basekey"
-#define MAX_USERS 25
+#define MAX_USERS 100
 
 typedef struct {
-  int id;
   int shmid;
   string name;
-  bool valid;
 } user_t;
 
-key_t users_key = ftok(USERS_BASEKEY, 65);
+key_t users_key = (key_t) 123123;
+key_t users_count_key = (key_t) 234234;
+
+user_t* att_users(int users_shmid) {
+  return (user_t*) shmat(users_shmid, NULL, 0);
+}
+
+int* att_users_count(int users_count_shmid) {
+  return (int*) shmat(users_count_shmid, NULL, 0);
+}
