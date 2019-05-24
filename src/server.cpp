@@ -1,10 +1,8 @@
-#include <thread> 
 #include <iostream> 
+#include <string.h>
+#include <signal.h> 
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <stdio.h> 
-#include <signal.h> 
-#include <ctime>
 
 #include "user.h"
 
@@ -41,12 +39,10 @@ int main() {
 void init() {
   cout << "Starting the server" << endl;
 
-  // Initialize users count on shared memory
   int *users_count = att_users_count(users_count_shmid);
   *users_count = 0;
   shmdt(users_count);
 
-  // override SIGINT handler
   cout << "Use Ctrl-C to stop\n" << endl;
   signal(SIGINT, sigint_handler); 
 }

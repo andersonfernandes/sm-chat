@@ -1,11 +1,7 @@
-#include <thread> 
 #include <iostream> 
+#include <string.h>
 #include <sys/ipc.h> 
 #include <sys/shm.h> 
-#include <stdio.h> 
-#include <signal.h> 
-#include <stdlib.h>
-#include <time.h>
 
 #include "user.h"
 
@@ -26,10 +22,8 @@ int main() {
 }
 
 void init() {
-  // Set rand seed
   srand(time(NULL));
 
-  // Verify shared memory connection errors
   if ((users_shmid < 0) || (users_count_shmid < 0)) {
     perror("shmget"); 
     cout << "Unable to connect with the server!" << endl;
@@ -45,7 +39,7 @@ void create_user() {
   user_t *current_user = new user_t();
 
   cout << "Username: ";
-  cin >> current_user->name;
+  cin.getline(current_user->name, 50);
   current_user->shmid = rand();
 
   memcpy(&users[(*users_count)], current_user, sizeof(user_t));

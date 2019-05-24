@@ -1,5 +1,4 @@
 #include <iostream> 
-#include <sys/ipc.h> 
 #include <sys/shm.h> 
 
 using namespace std;
@@ -8,7 +7,7 @@ using namespace std;
 
 typedef struct {
   int shmid;
-  string name;
+  char name[50];
 } user_t;
 
 key_t users_key = (key_t) 123123;
