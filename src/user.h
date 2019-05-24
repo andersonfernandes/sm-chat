@@ -1,12 +1,16 @@
-#include <iostream> 
-#include <sys/shm.h> 
+#include <iostream>
+#include <sys/shm.h>
 
 using namespace std;
 
+#ifndef USER_H
+
+#define USER_H
 #define MAX_USERS 100
 
 typedef struct {
-  int shmid;
+  key_t key;
+  int messages_shmid;
   char name[50];
 } user_t;
 
@@ -20,3 +24,5 @@ user_t* att_users(int users_shmid) {
 int* att_users_count(int users_count_shmid) {
   return (int*) shmat(users_count_shmid, NULL, 0);
 }
+
+#endif

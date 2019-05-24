@@ -1,6 +1,6 @@
 compile:
-	g++ src/client.cpp -lpthread -o bin/client
-	g++ src/server.cpp -lpthread -o bin/server
+	g++ -std=c++11 src/client.cpp -lpthread -o bin/client
+	g++ -std=c++11 src/server.cpp -lpthread -o bin/server
 
 clean:
 	rm -f bin/server bin/client
