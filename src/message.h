@@ -12,7 +12,7 @@ using namespace std;
 
 typedef struct {
   user_t source;
-  string message;
+  char text[200];
   bool readed;
   time_t send_at;
 } message_t;

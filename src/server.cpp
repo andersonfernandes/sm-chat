@@ -33,7 +33,6 @@ int main() {
       user_t *users = att_users(users_shmid);
       int *users_count = att_users_count(users_count_shmid);
       for (int i = 0; i < (*users_count); i++) {
-        cout << users[i].name << endl;
         shmctl(users[i].messages_shmid, IPC_RMID, NULL);
       }
 
@@ -50,7 +49,8 @@ int main() {
 }
 
 void init() {
-  cout << "Starting the server" << endl;
+  system("clear");
+  cout << "\n > Starting the server \n" <<  endl;
 
   int *users_count = att_users_count(users_count_shmid);
   *users_count = 0;
@@ -73,7 +73,7 @@ void process_new_users() {
     user_t user = users[(*users_count) - 1];
     user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(message_t), 0666|IPC_CREAT);
     memcpy(&users[(*users_count) - 1], &user, sizeof(user_t));
-
+   
     time_t now = time(0);
     cout << ctime(&now) << " > ";
     cout << user.name << " logged on the server\n" <<  endl;
