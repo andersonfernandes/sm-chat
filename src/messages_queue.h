@@ -5,7 +5,12 @@
 #define MESSAGES_QUEUE_H
 #define MAX_MESSAGES 10000
 
-typedef struct messages_queue MessagesQueue;
+typedef struct {
+  int front;
+  int rear;
+  int size;
+  Message* messages[MAX_MESSAGES];
+} MessagesQueue;
 
 MessagesQueue* create_queue();
 bool full(MessagesQueue* mq);

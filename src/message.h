@@ -5,12 +5,11 @@
 #ifndef MESSAGE_H
 #define MESSAGE_H
 
-typedef struct message Message;
-struct message {
+typedef struct {
   User source;
   char text[200];
   bool readed;
   time_t send_at;
-};
+} Message;
 
 #endif

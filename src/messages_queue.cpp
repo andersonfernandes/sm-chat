@@ -1,14 +1,6 @@
 #include <iostream>
 #include "messages_queue.h"
 
-typedef struct messages_queue MessagesQueue;
-struct messages_queue  {
-  int front;
-  int rear;
-  int size;
-  Message* messages[MAX_MESSAGES];
-};
-
 MessagesQueue* create_queue() {
   MessagesQueue* mq = new MessagesQueue(); 
   mq->front = mq->size = 0;  

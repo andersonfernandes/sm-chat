@@ -72,8 +72,12 @@ void process_new_users() {
   if(old_count != *users_count) {
     old_count = (*users_count);
     User user = users[(*users_count) - 1];
-    user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(Message), 0666|IPC_CREAT);
+    user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(Message) + sizeof(MessagesQueue), 0666|IPC_CREAT);
     memcpy(&users[(*users_count) - 1], &user, sizeof(User));
+
+    MessagesQueue* mq = (MessagesQueue*) shmat(user.messages_shmid, NULL, 0);
+    MessagesQueue* new_mq = create_queue();
+    memcpy(mq, new_mq, sizeof(MessagesQueue));
    
     time_t now = time(0);
     cout << ctime(&now) << " > ";

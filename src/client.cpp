@@ -8,6 +8,7 @@
 
 #include "user.h"
 #include "message.h"
+#include "messages_queue.h"
 
 using namespace std;
 
