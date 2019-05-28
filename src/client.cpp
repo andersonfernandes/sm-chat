@@ -11,11 +11,11 @@
 
 using namespace std;
 
-int users_shmid = shmget(users_key, MAX_USERS * sizeof(user_t), 0666);
+int users_shmid = shmget(users_key, MAX_USERS * sizeof(User), 0666);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
 int current_user_index = -1;
-user_t current_user;
+User current_user;
 char menu_option;
 
 void init();
@@ -26,7 +26,7 @@ int main() {
   init();
   create_user();
   
-  user_t *users = att_users(users_shmid);
+  User *users = att_users(users_shmid);
   current_user = users[current_user_index];
   shmdt(users);
 
@@ -63,16 +63,16 @@ void init() {
 }
 
 void create_user() {
-  user_t *users = att_users(users_shmid);
+  User *users = att_users(users_shmid);
   int *users_count = att_users_count(users_count_shmid);
 
-  user_t *current_user = new user_t();
+  User *current_user = new User();
 
   cout << "Username: ";
   cin.getline(current_user->name, 50);
   current_user->key = (key_t) rand();
 
-  memcpy(&users[(*users_count)], current_user, sizeof(user_t));
+  memcpy(&users[(*users_count)], current_user, sizeof(User));
 
   current_user_index = *users_count;
   int new_count = (*users_count) + 1;
@@ -83,7 +83,7 @@ void create_user() {
 }
 
 void print_users_list() {
-  user_t *users = att_users(users_shmid);
+  User *users = att_users(users_shmid);
   int *users_count = att_users_count(users_count_shmid);
 
   if(*users_count == 1) {

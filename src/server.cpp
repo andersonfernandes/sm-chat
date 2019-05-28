@@ -8,11 +8,12 @@
 
 #include "user.h"
 #include "message.h"
+#include "messages_queue.h"
 
 using namespace std;
 
 bool kill_server_flag = false;
-int users_shmid = shmget(users_key, MAX_USERS * sizeof(user_t), 0666|IPC_CREAT);
+int users_shmid = shmget(users_key, MAX_USERS * sizeof(User), 0666|IPC_CREAT);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666|IPC_CREAT);
 
 int old_count = 0;
@@ -30,7 +31,7 @@ int main() {
     if(kill_server_flag) {
       cout << "\nShutting down the server!" << endl;
 
-      user_t *users = att_users(users_shmid);
+      User *users = att_users(users_shmid);
       int *users_count = att_users_count(users_count_shmid);
       for (int i = 0; i < (*users_count); i++) {
         shmctl(users[i].messages_shmid, IPC_RMID, NULL);
@@ -65,14 +66,14 @@ void sigint_handler(int sig_num) {
 }
 
 void process_new_users() {
-  user_t *users = att_users(users_shmid);
+  User *users = att_users(users_shmid);
   int *users_count = att_users_count(users_count_shmid);
 
   if(old_count != *users_count) {
     old_count = (*users_count);
-    user_t user = users[(*users_count) - 1];
-    user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(message_t), 0666|IPC_CREAT);
-    memcpy(&users[(*users_count) - 1], &user, sizeof(user_t));
+    User user = users[(*users_count) - 1];
+    user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(Message), 0666|IPC_CREAT);
+    memcpy(&users[(*users_count) - 1], &user, sizeof(User));
    
     time_t now = time(0);
     cout << ctime(&now) << " > ";

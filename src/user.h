@@ -1,8 +1,6 @@
 #include <iostream>
 #include <sys/shm.h>
 
-using namespace std;
-
 #ifndef USER_H
 
 #define USER_H
@@ -12,13 +10,13 @@ typedef struct {
   key_t key;
   int messages_shmid;
   char name[50];
-} user_t;
+} User;
 
 key_t users_key = (key_t) 123123;
 key_t users_count_key = (key_t) 234234;
 
-user_t* att_users(int users_shmid) {
-  return (user_t*) shmat(users_shmid, NULL, 0);
+User* att_users(int users_shmid) {
+  return (User*) shmat(users_shmid, NULL, 0);
 }
 
 int* att_users_count(int users_count_shmid) {

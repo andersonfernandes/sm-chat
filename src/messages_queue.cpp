@@ -1,3 +1,4 @@
+#include <iostream>
 #include "messages_queue.h"
 
 typedef struct messages_queue MessagesQueue;
@@ -5,7 +6,7 @@ struct messages_queue  {
   int front;
   int rear;
   int size;
-  message_t* messages[MAX_MESSAGES];
+  Message* messages[MAX_MESSAGES];
 };
 
 MessagesQueue* create_queue() {
@@ -23,7 +24,7 @@ bool empty(MessagesQueue* mq) {
   return mq->size == 0;
 }
 
-void enqueue(MessagesQueue* mq, message_t* message) {
+void enqueue(MessagesQueue* mq, Message* message) {
   if(full(mq)) return;  
 
   mq->rear = (mq->rear + 1) % MAX_MESSAGES;  
@@ -31,21 +32,21 @@ void enqueue(MessagesQueue* mq, message_t* message) {
   mq->size = mq->size + 1;  
 }
 
-message_t* dequeue(MessagesQueue* mq) {
+Message* dequeue(MessagesQueue* mq) {
   if(empty(mq)) return NULL;  
 
-  message_t* message = mq->messages[mq->front];  
+  Message* message = mq->messages[mq->front];  
   mq->front = (mq->front + 1) % MAX_MESSAGES;  
   mq->size = mq->size - 1;  
   return message; 
 }
 
-message_t* front(MessagesQueue* mq) {
+Message* front(MessagesQueue* mq) {
   if(empty(mq)) return NULL;
   return mq->messages[mq->front];
 }
 
-message_t* rear(MessagesQueue* mq) {  
+Message* rear(MessagesQueue* mq) {  
     if (empty(mq)) return NULL;  
     return mq->messages[mq->rear];  
 }  

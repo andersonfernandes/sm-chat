@@ -10,9 +10,9 @@ typedef struct messages_queue MessagesQueue;
 MessagesQueue* create_queue();
 bool full(MessagesQueue* mq);
 bool empty(MessagesQueue* mq);
-void enqueue(MessagesQueue* mq, message_t* message);
-message_t* dequeue(MessagesQueue* mq);
-message_t* front(MessagesQueue* mq);
-message_t* rear(MessagesQueue* mq);
+void enqueue(MessagesQueue* mq, Message* message);
+Message* dequeue(MessagesQueue* mq);
+Message* front(MessagesQueue* mq);
+Message* rear(MessagesQueue* mq);
 
 #endif
