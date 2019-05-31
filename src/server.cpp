@@ -82,9 +82,10 @@ void process_new_users() {
     user.messages_shmid = shmget(user.key, sizeof(ShmQueue), 0666|IPC_CREAT);
     memcpy(&users[(*users_count) - 1], &user, sizeof(User));
 
-    ShmQueue* shmq = (ShmQueue*) shmat(user.messages_shmid, NULL, 0);
+    ShmQueue* shmq = att_shmq(user.messages_shmid);
     memcpy(shmq, create_queue(), sizeof(ShmQueue));
 
+    // TODO REMOVE
     Message* m = new Message();
     strcpy(m->text, "HELLO!");
     strcpy(m->source, "John Doe");

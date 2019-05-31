@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <iomanip>
+#include <thread>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
@@ -22,6 +22,7 @@ char chat_mode;
 void init();
 void create_user();
 void print_users_list();
+void receive_messages();
 
 int main() {
   init();
@@ -34,21 +35,14 @@ int main() {
   system("clear");
   cout << "\n >  Welcome " << current_user.name << " \n" <<  endl;
 
-  cout << "1 - Send messages" << endl;
-  cout << "2 - Receive messages" << endl;
+  cout << "1 - Unicast Mode" << endl;
+  cout << "2 - Broadcast Mode" << endl;
 
   cout << "\n> Select one option to continue: ";
   cin >> chat_mode;
 
-
-  ShmQueue* shmq = (ShmQueue*) shmat(current_user.messages_shmid, NULL, 0);
-
-  Message* message = new Message();
-  dequeue(shmq, message);
-  cout << ctime(&message->sent_at);
-  cout << message->source << ": " << message->text << endl;
-
-  shmdt(shmq);
+  thread receive_messages_thread(receive_messages);
+  receive_messages_thread.join();
 
   return 0;
 }
@@ -103,4 +97,17 @@ void print_users_list() {
   }
 
   shmdt(users_count);
+}
+
+void receive_messages() {
+  while(true) {
+    ShmQueue* shmq = att_shmq(current_user.messages_shmid);
+    if(!empty(shmq)) {
+      Message* message = new Message();
+      dequeue(shmq, message);
+      cout << endl << ctime(&message->sent_at);
+      cout << message->source << " says: " << message->text << endl;
+    }
+    shmdt(shmq);
+  }
 }

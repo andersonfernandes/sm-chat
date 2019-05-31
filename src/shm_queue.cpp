@@ -46,6 +46,10 @@ void dequeue(ShmQueue* shmq, Message* dest_message) {
   shmq->size = shmq->size - 1;
 }
 
+ShmQueue* att_shmq(int shmid) {
+  return (ShmQueue*) shmat(shmid, NULL, 0);
+}
+
 key_t generate_key() {
   srand(time(NULL));
   return (key_t) rand();

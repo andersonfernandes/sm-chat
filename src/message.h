@@ -8,7 +8,6 @@
 typedef struct {
   char source[50];
   char text[200];
-  bool readed;
   time_t sent_at;
 } Message;
 

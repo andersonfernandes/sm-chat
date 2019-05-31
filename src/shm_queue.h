@@ -19,4 +19,6 @@ bool full(ShmQueue* shmq);
 void enqueue(ShmQueue* shmq, Message* message);
 void dequeue(ShmQueue* shmq, Message* dest_message);
 
+ShmQueue* att_shmq(int shmq_id);
+
 #endif
