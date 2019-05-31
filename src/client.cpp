@@ -6,6 +6,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
+#include <mutex>
+#include <condition_variable>
+
 #include "user.h"
 #include "message.h"
 #include "shm_queue.h"
@@ -19,10 +22,17 @@ int current_user_index = -1;
 User current_user;
 char chat_mode;
 
+bool ready = true;
+std::mutex mtx;
+std::condition_variable cv;
+
 void init();
 void create_user();
 void print_users_list();
+void go();
 void receive_messages();
+void send_messages();
+void print_message(Message* message);
 
 int main() {
   init();
@@ -42,7 +52,10 @@ int main() {
   cin >> chat_mode;
 
   thread receive_messages_thread(receive_messages);
+  thread send_messages_thread(send_messages);
+  go();
   receive_messages_thread.join();
+  send_messages_thread.join();
 
   return 0;
 }
@@ -105,9 +118,37 @@ void receive_messages() {
     if(!empty(shmq)) {
       Message* message = new Message();
       dequeue(shmq, message);
-      cout << endl << ctime(&message->sent_at);
-      cout << message->source << " says: " << message->text << endl;
+      print_message(message);
     }
     shmdt(shmq);
   }
+}
+
+void go() {
+  unique_lock<std::mutex> lck(mtx);
+  ready = true;
+  cv.notify_all();
+}
+
+void send_messages() {
+  while(true) {
+    Message* message = new Message();
+    strcpy(message->source, current_user.name);
+    message->sent_at = time(0);
+
+    cout << endl << "> ";
+    cin.getline(message->text, 200);
+
+    print_message(message);
+  }
+}
+
+void print_message(Message* message) {
+  unique_lock<std::mutex> lck(mtx);
+  while (!ready) cv.wait(lck);
+
+  if(strlen(message->text) == 0) return;
+
+  cout << endl << ctime(&message->sent_at);
+  cout << message->source << " says: " << message->text << endl;
 }
