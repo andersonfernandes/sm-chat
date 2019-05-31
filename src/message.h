@@ -6,10 +6,10 @@
 #define MESSAGE_H
 
 typedef struct {
-  User source;
+  char source[50];
   char text[200];
   bool readed;
-  time_t send_at;
+  time_t sent_at;
 } Message;
 
 #endif

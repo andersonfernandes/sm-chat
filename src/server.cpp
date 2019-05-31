@@ -8,7 +8,7 @@
 
 #include "user.h"
 #include "message.h"
-#include "messages_queue.h"
+#include "shm_queue.h"
 
 using namespace std;
 
@@ -29,11 +29,16 @@ int main() {
     process_new_users();
 
     if(kill_server_flag) {
-      cout << "\nShutting down the server!" << endl;
+      cout << "\nCleaning shared memory segments" << endl;
 
       User *users = att_users(users_shmid);
       int *users_count = att_users_count(users_count_shmid);
       for (int i = 0; i < (*users_count); i++) {
+
+        ShmQueue* shmq = (ShmQueue*) shmat(users[i].messages_shmid, NULL, 0);
+        shmctl(shmq->messages_list_shmid, IPC_RMID, NULL);
+        shmdt(shmq);
+
         shmctl(users[i].messages_shmid, IPC_RMID, NULL);
       }
 
@@ -42,6 +47,8 @@ int main() {
 
       shmctl(users_shmid, IPC_RMID, NULL);
       shmctl(users_count_shmid, IPC_RMID, NULL);
+
+      cout << "\nBye!" << endl;
       exit(0);
     }
   }
@@ -72,12 +79,19 @@ void process_new_users() {
   if(old_count != *users_count) {
     old_count = (*users_count);
     User user = users[(*users_count) - 1];
-    user.messages_shmid = shmget(user.key, MAX_MESSAGES * sizeof(Message) + sizeof(MessagesQueue), 0666|IPC_CREAT);
+    user.messages_shmid = shmget(user.key, sizeof(ShmQueue), 0666|IPC_CREAT);
     memcpy(&users[(*users_count) - 1], &user, sizeof(User));
 
-    MessagesQueue* mq = (MessagesQueue*) shmat(user.messages_shmid, NULL, 0);
-    MessagesQueue* new_mq = create_queue();
-    memcpy(mq, new_mq, sizeof(MessagesQueue));
+    ShmQueue* shmq = (ShmQueue*) shmat(user.messages_shmid, NULL, 0);
+    memcpy(shmq, create_queue(), sizeof(ShmQueue));
+
+    Message* m = new Message();
+    strcpy(m->text, "HELLO!");
+    strcpy(m->source, "John Doe");
+    m->sent_at = time(0);
+    enqueue(shmq, m) ;
+
+    shmdt(shmq);
    
     time_t now = time(0);
     cout << ctime(&now) << " > ";

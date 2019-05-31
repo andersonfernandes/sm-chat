@@ -1,4 +1,4 @@
-DEPS=src/messages_queue.cpp src/user.cpp
+DEPS=src/shm_queue.cpp src/user.cpp
 
 compile:
 	g++ -std=c++11 $(DEPS) src/client.cpp -lpthread -o bin/client

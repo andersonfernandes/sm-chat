@@ -8,7 +8,7 @@
 
 #include "user.h"
 #include "message.h"
-#include "messages_queue.h"
+#include "shm_queue.h"
 
 using namespace std;
 
@@ -17,7 +17,7 @@ int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
 int current_user_index = -1;
 User current_user;
-char menu_option;
+char chat_mode;
 
 void init();
 void create_user();
@@ -38,17 +38,18 @@ int main() {
   cout << "2 - Receive messages" << endl;
 
   cout << "\n> Select one option to continue: ";
-  cin >> menu_option;
+  cin >> chat_mode;
 
-  if(menu_option == '1') {
-    print_users_list();
-  } else if (menu_option == '2') {
 
-  } else {  
-    cout << "OTHER";
-  }
+  ShmQueue* shmq = (ShmQueue*) shmat(current_user.messages_shmid, NULL, 0);
 
-  while(1) {  }
+  Message* message = new Message();
+  dequeue(shmq, message);
+  cout << ctime(&message->sent_at);
+  cout << message->source << ": " << message->text << endl;
+
+  shmdt(shmq);
+
   return 0;
 }
 
