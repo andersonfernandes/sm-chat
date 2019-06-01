@@ -6,9 +6,6 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include <mutex>
-#include <condition_variable>
-
 #include "user.h"
 #include "message.h"
 #include "shm_queue.h"
@@ -22,14 +19,9 @@ int current_user_index = -1;
 User current_user;
 char chat_mode;
 
-bool ready = true;
-std::mutex mtx;
-std::condition_variable cv;
-
 void init();
 void create_user();
 void print_users_list();
-void go();
 void receive_messages();
 void send_messages();
 void print_message(Message* message);
@@ -43,7 +35,7 @@ int main() {
   shmdt(users);
 
   system("clear");
-  cout << "\n >  Welcome " << current_user.name << " \n" <<  endl;
+  cout << "\n>  Welcome " << current_user.name << " \n" <<  endl;
 
   cout << "1 - Unicast Mode" << endl;
   cout << "2 - Broadcast Mode" << endl;
@@ -53,7 +45,6 @@ int main() {
 
   thread receive_messages_thread(receive_messages);
   thread send_messages_thread(send_messages);
-  go();
   receive_messages_thread.join();
   send_messages_thread.join();
 
@@ -124,29 +115,38 @@ void receive_messages() {
   }
 }
 
-void go() {
-  unique_lock<std::mutex> lck(mtx);
-  ready = true;
-  cv.notify_all();
-}
-
 void send_messages() {
   while(true) {
     Message* message = new Message();
     strcpy(message->source, current_user.name);
     message->sent_at = time(0);
 
-    cout << endl << "> ";
+    cout << endl;
     cin.getline(message->text, 200);
+
+    if(chat_mode == '1') {
+
+    } else {
+      User *users = att_users(users_shmid);
+      int *users_count = att_users_count(users_count_shmid);
+      
+      for (int i = 0; i < *users_count; i++) {
+        if(users[i].messages_shmid == current_user.messages_shmid) continue;
+
+        ShmQueue* shmq = att_shmq(users[i].messages_shmid);
+        enqueue(shmq, message);
+        shmdt(shmq);
+      }
+
+      shmdt(users);
+      shmdt(users_count);
+    }
 
     print_message(message);
   }
 }
 
 void print_message(Message* message) {
-  unique_lock<std::mutex> lck(mtx);
-  while (!ready) cv.wait(lck);
-
   if(strlen(message->text) == 0) return;
 
   cout << endl << ctime(&message->sent_at);

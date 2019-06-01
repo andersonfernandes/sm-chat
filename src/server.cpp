@@ -58,7 +58,7 @@ int main() {
 
 void init() {
   system("clear");
-  cout << "\n > Starting the server \n" <<  endl;
+  cout << "\n> Starting the server \n" <<  endl;
 
   int *users_count = att_users_count(users_count_shmid);
   *users_count = 0;
@@ -84,14 +84,6 @@ void process_new_users() {
 
     ShmQueue* shmq = att_shmq(user.messages_shmid);
     memcpy(shmq, create_queue(), sizeof(ShmQueue));
-
-    // TODO REMOVE
-    Message* m = new Message();
-    strcpy(m->text, "HELLO!");
-    strcpy(m->source, "John Doe");
-    m->sent_at = time(0);
-    enqueue(shmq, m) ;
-
     shmdt(shmq);
    
     time_t now = time(0);
