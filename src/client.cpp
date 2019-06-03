@@ -17,6 +17,7 @@ int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
 int current_user_index = -1;
 User current_user;
+User user_to_chat;
 char chat_mode;
 
 void init();
@@ -27,9 +28,10 @@ void send_messages();
 void print_message(Message* message);
 
 int main() {
+  int user_to_chat_index = -1;
   init();
   create_user();
-  
+
   User *users = att_users(users_shmid);
   current_user = users[current_user_index];
   shmdt(users);
@@ -40,13 +42,23 @@ int main() {
   cout << "1 - Unicast Mode" << endl;
   cout << "2 - Broadcast Mode" << endl;
 
-  cout << "\n> Select one option to continue: ";
+  cout << endl << "Select a chat mode to continue" << endl;
+  cout << "> ";
   cin >> chat_mode;
+  cin.clear();
+  cout << endl;
+
+  if(chat_mode == '1') {
+    print_users_list();
+    cout << endl << "Select a user to chat" << endl;
+    cout << "> ";
+    cin >> user_to_chat_index;
+  }
 
   thread receive_messages_thread(receive_messages);
-  thread send_messages_thread(send_messages);
-  receive_messages_thread.join();
-  send_messages_thread.join();
+  receive_messages_thread.detach();
+
+  send_messages();
 
   return 0;
 }
@@ -87,11 +99,11 @@ void print_users_list() {
   int *users_count = att_users_count(users_count_shmid);
 
   if(*users_count == 1) {
-    cout << "0 Users online!" << endl;
+    cout << endl << "0 Users online!" << endl;
   } else {
     users = att_users(users_shmid);
 
-    cout << "\nOnline users:" << endl;
+    cout << endl << "Online users:" << endl;
     for (int i = 0; i < (*users_count); i++) {
       if (i == current_user_index) continue;
       cout << i << " - " << users[i].name << endl;
@@ -116,23 +128,22 @@ void receive_messages() {
 }
 
 void send_messages() {
-  while(true) {
+  char text[200];
+  do {
+    cin.getline(text, 200);
+
     Message* message = new Message();
     strcpy(message->source, current_user.name);
+    strcpy(message->text, text);
     message->sent_at = time(0);
 
-    cout << endl;
-    cin.getline(message->text, 200);
-
-    if(chat_mode == '1') {
-
-    } else {
+    if(chat_mode == '1' && strlen(message->text) != 0) {
+      // TODO Implement
+    } else if(chat_mode == '2' && strlen(message->text) != 0) {
       User *users = att_users(users_shmid);
       int *users_count = att_users_count(users_count_shmid);
-      
-      for (int i = 0; i < *users_count; i++) {
-        if(users[i].messages_shmid == current_user.messages_shmid) continue;
 
+      for (int i = 0; i < *users_count; i++) {
         ShmQueue* shmq = att_shmq(users[i].messages_shmid);
         enqueue(shmq, message);
         shmdt(shmq);
@@ -141,14 +152,12 @@ void send_messages() {
       shmdt(users);
       shmdt(users_count);
     }
+  } while(strcmp(text, ":q") != 0);
 
-    print_message(message);
-  }
+  exit(0);
 }
 
 void print_message(Message* message) {
-  if(strlen(message->text) == 0) return;
-
   cout << endl << ctime(&message->sent_at);
-  cout << message->source << " says: " << message->text << endl;
+  cout << " > " << message->source << ": " << message->text << endl << endl;
 }
