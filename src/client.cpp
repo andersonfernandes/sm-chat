@@ -16,8 +16,6 @@ int users_shmid = shmget(users_key, MAX_USERS * sizeof(User), 0666);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
 User current_user;
-User user_to_chat;
-char chat_mode;
 
 void init();
 void create_user();
@@ -39,11 +37,11 @@ int main() {
 
     if(invalid_option) cout << endl << "Invalid Option!" << endl;
 
+    cout << endl << "Select an option to continue" << endl;
     cout << endl << "1 - Start Chat" << endl;
-    cout << "0 - Exit" << endl;
+    cout << "2 - Help" << endl;
 
-    cout << endl << "Select a option to continue" << endl;
-    cout << "> ";
+    cout << endl << "> ";
     cin >> menu_option;
 
     if(menu_option == '1') {
@@ -102,7 +100,7 @@ void create_user() {
   shmdt(users_count);
 }
 
-void select_user() {
+void select_user(User* user_to_chat) {
   User *users = att_users(users_shmid);
   int *users_count = att_users_count(users_count_shmid);
 
@@ -121,7 +119,7 @@ void select_user() {
     cout << endl << "Select the user to chat: ";
     cin >> user_to_chat_index;
 
-    user_to_chat = users[user_to_chat_index];
+    memcpy(user_to_chat, &users[user_to_chat_index], sizeof(User));
   }
 
   shmdt(users);
@@ -146,7 +144,7 @@ void send_messages() {
     cin.getline(text, 200);
 
     Message* message = new Message();
-    strcpy(message->source, current_user.name);
+    strcpy(message->source_name, current_user.name);
     strcpy(message->text, text);
 
     if(strcmp(text, ":q") == 0) break;
@@ -156,13 +154,19 @@ void send_messages() {
       cin >> message_mode;
 
       if(message_mode == 'U' || message_mode == 'u') {
-        select_user();
+        User* user_to_chat = new User();
+        select_user(user_to_chat);
 
+        message->mode = UNICAST;
         message->sent_at = time(0);
-        ShmQueue* shmq = att_shmq(user_to_chat.shmq_id);
+
+        ShmQueue* shmq = att_shmq(user_to_chat->shmq_id);
         enqueue(shmq, message);
         shmdt(shmq);
       } else {
+        message->mode = BROADCAST;
+        message->sent_at = time(0);
+
         User *users = att_users(users_shmid);
         int *users_count = att_users_count(users_count_shmid);
 
@@ -185,5 +189,5 @@ void send_messages() {
 
 void print_message(Message* message) {
   cout << endl << ctime(&message->sent_at);
-  cout << " > " << message->source << ": " << message->text << endl << endl;
+  cout << " > " << message->source_name << " (" << message->mode << "): " << message->text << endl << endl;
 }
