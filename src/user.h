@@ -7,8 +7,7 @@
 #define MAX_USERS 100
 
 typedef struct {
-  key_t key;
-  int messages_shmid;
+  int shmq_id;
   char name[50];
 } User;
 

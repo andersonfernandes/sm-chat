@@ -15,9 +15,7 @@ using namespace std;
 int users_shmid = shmget(users_key, MAX_USERS * sizeof(User), 0666);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
-int current_user_index = -1;
 User current_user;
-User user_to_chat;
 char chat_mode;
 
 void init();
@@ -28,13 +26,8 @@ void send_messages();
 void print_message(Message* message);
 
 int main() {
-  int user_to_chat_index = -1;
   init();
   create_user();
-
-  User *users = att_users(users_shmid);
-  current_user = users[current_user_index];
-  shmdt(users);
 
   system("clear");
   cout << "\n>  Welcome " << current_user.name << " \n" <<  endl;
@@ -47,13 +40,6 @@ int main() {
   cin >> chat_mode;
   cin.clear();
   cout << endl;
-
-  if(chat_mode == '1') {
-    print_users_list();
-    cout << endl << "Select a user to chat" << endl;
-    cout << "> ";
-    cin >> user_to_chat_index;
-  }
 
   thread receive_messages_thread(receive_messages);
   receive_messages_thread.detach();
@@ -74,50 +60,59 @@ void init() {
   }
 }
 
+int create_shmq() {
+  key_t key = rand();
+  int shmq_id = shmget(key, sizeof(ShmQueue), 0666|IPC_CREAT);
+
+  ShmQueue* shmq = att_shmq(shmq_id);
+  memcpy(shmq, create_queue(), sizeof(ShmQueue));
+  shmdt(shmq);
+
+  return shmq_id;
+}
+
 void create_user() {
   User *users = att_users(users_shmid);
   int *users_count = att_users_count(users_count_shmid);
 
-  User *current_user = new User();
+  User *new_user = new User();
 
   cout << "Username: ";
-  cin.getline(current_user->name, 50);
-  current_user->key = (key_t) rand();
+  cin.getline(new_user->name, 50);
+  new_user->shmq_id = create_shmq();
 
-  memcpy(&users[(*users_count)], current_user, sizeof(User));
-
-  current_user_index = *users_count;
-  int new_count = (*users_count) + 1;
-  memcpy(users_count, &new_count, sizeof(int));
+  memcpy(&users[(*users_count)], new_user, sizeof(User));
+  memcpy(users_count, &++(*users_count), sizeof(int));
+  memcpy(&current_user, new_user, sizeof(User));
 
   shmdt(users);
   shmdt(users_count);
 }
 
 void print_users_list() {
-  User *users = att_users(users_shmid);
-  int *users_count = att_users_count(users_count_shmid);
-
-  if(*users_count == 1) {
-    cout << endl << "0 Users online!" << endl;
-  } else {
-    users = att_users(users_shmid);
-
-    cout << endl << "Online users:" << endl;
-    for (int i = 0; i < (*users_count); i++) {
-      if (i == current_user_index) continue;
-      cout << i << " - " << users[i].name << endl;
-    }
-
-    shmdt(users);
-  }
-
-  shmdt(users_count);
+  // User *users = att_users(users_shmid);
+  // int *users_count = att_users_count(users_count_shmid);
+  //
+  // if(*users_count == 1) {
+  //   cout << endl << "0 Users online!" << endl;
+  // } else {
+  //   users = att_users(users_shmid);
+  //
+  //   cout << endl << "Online users:" << endl;
+  //   for (int i = 0; i < (*users_count); i++) {
+  //     if (i == current_user_index) continue;
+  //     cout << i << " - " << users[i].name << endl;
+  //   }
+  //
+  //   shmdt(users);
+  // }
+  //
+  // shmdt(users_count);
 }
 
 void receive_messages() {
   while(true) {
-    ShmQueue* shmq = att_shmq(current_user.messages_shmid);
+    ShmQueue* shmq = att_shmq(current_user.shmq_id);
     if(!empty(shmq)) {
       Message* message = new Message();
       dequeue(shmq, message);
@@ -144,7 +139,7 @@ void send_messages() {
       int *users_count = att_users_count(users_count_shmid);
 
       for (int i = 0; i < *users_count; i++) {
-        ShmQueue* shmq = att_shmq(users[i].messages_shmid);
+        ShmQueue* shmq = att_shmq(users[i].shmq_id);
         enqueue(shmq, message);
         shmdt(shmq);
       }

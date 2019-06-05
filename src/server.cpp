@@ -35,11 +35,11 @@ int main() {
       int *users_count = att_users_count(users_count_shmid);
       for (int i = 0; i < (*users_count); i++) {
 
-        ShmQueue* shmq = (ShmQueue*) shmat(users[i].messages_shmid, NULL, 0);
+        ShmQueue* shmq = (ShmQueue*) shmat(users[i].shmq_id, NULL, 0);
         shmctl(shmq->messages_list_shmid, IPC_RMID, NULL);
         shmdt(shmq);
 
-        shmctl(users[i].messages_shmid, IPC_RMID, NULL);
+        shmctl(users[i].shmq_id, IPC_RMID, NULL);
       }
 
       shmdt(users_count);
@@ -77,18 +77,15 @@ void process_new_users() {
   int *users_count = att_users_count(users_count_shmid);
 
   if(old_count != *users_count) {
-    old_count = (*users_count);
-    User user = users[(*users_count) - 1];
-    user.messages_shmid = shmget(user.key, sizeof(ShmQueue), 0666|IPC_CREAT);
-    memcpy(&users[(*users_count) - 1], &user, sizeof(User));
+    for (int i = old_count; i < *users_count; i++) {
+      User user = users[i];
 
-    ShmQueue* shmq = att_shmq(user.messages_shmid);
-    memcpy(shmq, create_queue(), sizeof(ShmQueue));
-    shmdt(shmq);
-   
-    time_t now = time(0);
-    cout << ctime(&now) << " > ";
-    cout << user.name << " logged on the server\n" <<  endl;
+      time_t now = time(0);
+      cout << ctime(&now) << " > ";
+      cout << user.name << " logged on the server\n" <<  endl;  
+    }
+
+    old_count = (*users_count);
   }
 
   shmdt(users_count);
