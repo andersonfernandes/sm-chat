@@ -16,11 +16,12 @@ int users_shmid = shmget(users_key, MAX_USERS * sizeof(User), 0666);
 int users_count_shmid = shmget(users_count_key, sizeof(int), 0666);
 
 User current_user;
+User user_to_chat;
 char chat_mode;
 
 void init();
 void create_user();
-void print_users_list();
+void select_user();
 void receive_messages();
 void send_messages();
 void print_message(Message* message);
@@ -101,25 +102,30 @@ void create_user() {
   shmdt(users_count);
 }
 
-void print_users_list() {
-  // User *users = att_users(users_shmid);
-  // int *users_count = att_users_count(users_count_shmid);
-  //
-  // if(*users_count == 1) {
-  //   cout << endl << "0 Users online!" << endl;
-  // } else {
-  //   users = att_users(users_shmid);
-  //
-  //   cout << endl << "Online users:" << endl;
-  //   for (int i = 0; i < (*users_count); i++) {
-  //     if (i == current_user_index) continue;
-  //     cout << i << " - " << users[i].name << endl;
-  //   }
-  //
-  //   shmdt(users);
-  // }
-  //
-  // shmdt(users_count);
+void select_user() {
+  User *users = att_users(users_shmid);
+  int *users_count = att_users_count(users_count_shmid);
+
+  if(*users_count == 1) {
+    cout << endl << "0 Users online!" << endl;
+  } else {
+    users = att_users(users_shmid);
+
+    cout << endl << "Online users:" << endl;
+    for (int i = 0; i < (*users_count); i++) {
+      if (users[i].shmq_id == current_user.shmq_id) continue;
+      cout << i << " - " << users[i].name << endl;
+    }
+
+    int user_to_chat_index;
+    cout << endl << "Select the user to chat: ";
+    cin >> user_to_chat_index;
+
+    user_to_chat = users[user_to_chat_index];
+  }
+
+  shmdt(users);
+  shmdt(users_count);
 }
 
 void receive_messages() {
@@ -142,22 +148,38 @@ void send_messages() {
     Message* message = new Message();
     strcpy(message->source, current_user.name);
     strcpy(message->text, text);
-    message->sent_at = time(0);
 
     if(strcmp(text, ":q") == 0) break;
     else if(strlen(message->text) != 0) {
-      User *users = att_users(users_shmid);
-      int *users_count = att_users_count(users_count_shmid);
+      char message_mode = 'B';
+      cout << endl << "Select the message mode ([U]nicast or [B]roadcast): ";
+      cin >> message_mode;
 
-      for (int i = 0; i < *users_count; i++) {
-        ShmQueue* shmq = att_shmq(users[i].shmq_id);
+      if(message_mode == 'U' || message_mode == 'u') {
+        select_user();
+
+        message->sent_at = time(0);
+        ShmQueue* shmq = att_shmq(user_to_chat.shmq_id);
         enqueue(shmq, message);
         shmdt(shmq);
-      }
+      } else {
+        User *users = att_users(users_shmid);
+        int *users_count = att_users_count(users_count_shmid);
 
-      shmdt(users);
-      shmdt(users_count);
+        for (int i = 0; i < *users_count; i++) {
+          if (users[i].shmq_id == current_user.shmq_id) continue;
+
+          ShmQueue* shmq = att_shmq(users[i].shmq_id);
+          enqueue(shmq, message);
+          shmdt(shmq);
+        }
+
+        shmdt(users);
+        shmdt(users_count);
+      }
     }
+
+    cout << endl;
   }
 }
 
