@@ -26,25 +26,37 @@ void send_messages();
 void print_message(Message* message);
 
 int main() {
+  char menu_option = '1';
+  bool invalid_option = false;
+
   init();
   create_user();
 
-  system("clear");
-  cout << "\n>  Welcome " << current_user.name << " \n" <<  endl;
+  do {
+    system("clear");
+    cout << endl << ">  Welcome " << current_user.name <<  endl;
 
-  cout << "1 - Unicast Mode" << endl;
-  cout << "2 - Broadcast Mode" << endl;
+    if(invalid_option) cout << endl << "Invalid Option!" << endl;
 
-  cout << endl << "Select a chat mode to continue" << endl;
-  cout << "> ";
-  cin >> chat_mode;
-  cin.clear();
-  cout << endl;
+    cout << endl << "1 - Start Chat" << endl;
+    cout << "0 - Exit" << endl;
 
-  thread receive_messages_thread(receive_messages);
-  receive_messages_thread.detach();
+    cout << endl << "Select a option to continue" << endl;
+    cout << "> ";
+    cin >> menu_option;
 
-  send_messages();
+    if(menu_option == '1') {
+      invalid_option = false;
+      cout << endl << "Started chat. Type :q to go back to the menu" << endl << endl;
+
+      thread receive_messages_thread(receive_messages);
+      receive_messages_thread.detach();
+
+      send_messages();
+    } else {
+      invalid_option = true;
+    }
+  } while(menu_option != '0');
 
   return 0;
 }
@@ -123,8 +135,8 @@ void receive_messages() {
 }
 
 void send_messages() {
-  char text[200];
-  do {
+  while(true) {
+    char text[200];
     cin.getline(text, 200);
 
     Message* message = new Message();
@@ -132,9 +144,8 @@ void send_messages() {
     strcpy(message->text, text);
     message->sent_at = time(0);
 
-    if(chat_mode == '1' && strlen(message->text) != 0) {
-      // TODO Implement
-    } else if(chat_mode == '2' && strlen(message->text) != 0) {
+    if(strcmp(text, ":q") == 0) break;
+    else if(strlen(message->text) != 0) {
       User *users = att_users(users_shmid);
       int *users_count = att_users_count(users_count_shmid);
 
@@ -147,9 +158,7 @@ void send_messages() {
       shmdt(users);
       shmdt(users_count);
     }
-  } while(strcmp(text, ":q") != 0);
-
-  exit(0);
+  }
 }
 
 void print_message(Message* message) {
