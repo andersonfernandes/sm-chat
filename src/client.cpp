@@ -6,9 +6,9 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 
-#include "user.h"
-#include "message.h"
-#include "shm_queue.h"
+#include "../include/user.h"
+#include "../include/message.h"
+#include "../include/shm_queue.h"
 
 using namespace std;
 

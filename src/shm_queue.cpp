@@ -2,7 +2,7 @@
 #include <string.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include "shm_queue.h"
+#include "../include/shm_queue.h"
 
 key_t generate_key();
 

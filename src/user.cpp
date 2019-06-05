@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sys/shm.h>
-#include "user.h"
+#include "../include/user.h"
 
 key_t users_key = (key_t) 123123;
 key_t users_count_key = (key_t) 234234;
