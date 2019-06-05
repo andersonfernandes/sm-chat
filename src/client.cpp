@@ -25,37 +25,17 @@ void send_messages();
 void print_message(Message* message);
 
 int main() {
-  char menu_option = '1';
-  bool invalid_option = false;
-
   init();
   create_user();
 
-  do {
-    system("clear");
-    cout << endl << ">  Welcome " << current_user.name <<  endl;
+  system("clear");
+  cout << endl << "> Welcome " << current_user.name <<  endl;
 
-    if(invalid_option) cout << endl << "Invalid Option!" << endl;
+  cout << endl << "Started chat. Type :q to quit" << endl << endl;
 
-    cout << endl << "Select an option to continue" << endl;
-    cout << endl << "1 - Start Chat" << endl;
-    cout << "2 - Help" << endl;
-
-    cout << endl << "> ";
-    cin >> menu_option;
-
-    if(menu_option == '1') {
-      invalid_option = false;
-      cout << endl << "Started chat. Type :q to go back to the menu" << endl << endl;
-
-      thread receive_messages_thread(receive_messages);
-      receive_messages_thread.detach();
-
-      send_messages();
-    } else {
-      invalid_option = true;
-    }
-  } while(menu_option != '0');
+  thread receive_messages_thread(receive_messages);
+  receive_messages_thread.detach();
+  send_messages();
 
   return 0;
 }
