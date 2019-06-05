@@ -115,8 +115,8 @@ void receive_messages() {
     ShmQueue* shmq = att_shmq(current_user.shmq_id);
     if(!empty(shmq)) {
       Message* message = new Message();
-      dequeue(shmq, message);
-      print_message(message);
+
+      if(dequeue(shmq, message)) print_message(message);
     }
     shmdt(shmq);
   }

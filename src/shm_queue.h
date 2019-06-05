@@ -11,13 +11,14 @@ typedef struct {
   int front;
   int rear;
   int messages_list_shmid;
+  bool locked;
 } ShmQueue;
 
 ShmQueue* create_queue();
 bool empty(ShmQueue* shmq);
 bool full(ShmQueue* shmq);
 void enqueue(ShmQueue* shmq, Message* message);
-void dequeue(ShmQueue* shmq, Message* dest_message);
+bool dequeue(ShmQueue* shmq, Message* dest_message);
 
 ShmQueue* att_shmq(int shmq_id);
 
