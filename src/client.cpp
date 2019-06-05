@@ -30,8 +30,7 @@ int main() {
 
   system("clear");
   cout << endl << "> Welcome " << current_user.name <<  endl;
-
-  cout << endl << "Started chat. Type :q to quit" << endl << endl;
+  cout << endl << "The chat started. To quit the app type :q" << endl << endl;
 
   thread receive_messages_thread(receive_messages);
   receive_messages_thread.detach();
