@@ -2,8 +2,8 @@
 #include <sys/shm.h>
 #include "../include/user.h"
 
-key_t users_key = (key_t) 123123;
-key_t users_count_key = (key_t) 234234;
+key_t users_key = (key_t) rand();
+key_t users_count_key = (key_t) rand();
 
 User* att_users(int users_shmid) {
   return (User*) shmat(users_shmid, NULL, 0);

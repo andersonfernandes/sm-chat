@@ -57,6 +57,8 @@ int main() {
 }
 
 void init() {
+  srand(time(NULL));
+
   system("clear");
   cout << "\n> Starting the server \n" <<  endl;
 
